@@ -1,0 +1,22 @@
+model:
+  name: conv_stal
+  n_spikes_per_timestep: 5
+  kernel_size: 3
+  drop_p: 0.1
+  l1_sz: 32
+
+data:
+  dataset: mnist # cifar10 or mnist
+  data_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\data
+
+training:
+  epochs: 10
+  batch_size: 128
+  learning_rate: 0.001
+  loss:
+    name: multi_channel_encoder_loss
+  logger:
+    name: wandb
+    save_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\experiments
+    project: thesis_conv_stal
+  save_weights: True

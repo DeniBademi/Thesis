@@ -1,0 +1,13 @@
+torch>=2.6.0
+torchvision>=0.21.0
+pytorch-lightning>=2.5.1
+numpy>=2.1.2
+PyYAML>=6.0.2
+spikingjelly>=0.0.0.0.14
+snntorch>=0.9.4
+optuna>=4.3.0
+wandb>=0.19.11
+mlflow>=2.21.3
+tqdm>=4.67.1
+torchmetrics>=1.7.0
+typing-extensions>=4.12.2

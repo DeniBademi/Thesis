@@ -1,0 +1,43 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Dataset folders
+datasets/
+dataset/
+data/
+
+# Data files
+*.csv
+*.tsv
+*.json
+*.bin
+*.dat
+*.h5
+*.hdf5
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.parquet
+*.feather
+*.arrow
+*.db
+*.sqlite
+*.sqlite3
+
+
+venv/
+myenv/
+.venv/
+
+experiments/
+
+
+.DS_Store
+
+
+
+
+
