@@ -1,0 +1,35 @@
+model:
+  name: srnn
+  n_spikes_per_timestep: 5
+  lif_beta: 0.9
+  l1_sz: 56
+  num_steps: 5
+  encoder:
+    name: convstal
+    n_spikes_per_timestep: 5
+    kernel_size: 3
+    drop_p: 0.1
+    l1_sz: 784
+
+    # freeze_weights: False
+    # checkpoint_path: weights/conv_stal_mnist_20250525_203021.cpkt
+    # checkpoint_path for cifar10: weights/conv_stal_cifar10_20250525_202943.cpkt
+    # checkpoint_path for mnist: weights/conv_stal_mnist_20250525_203021.cpkt
+data:
+  dataset: cifar10
+  data_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\data
+
+training:
+  epochs: 10
+  batch_size: 128
+  learning_rate: 0.001
+  train_val_split_ratio: 1
+  loss:
+    name: ce_ss # cross_entropy or ce_ss
+    omega: 0.000035 # for ce_ss
+    concentration_weight: 0.627759 # for ce_ss
+  logger:
+    name: wandb
+    save_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\experiments
+    project: thesis_rsnn
+  save_weights: True

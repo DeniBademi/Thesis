@@ -1,0 +1,29 @@
+model:
+  name: spikformer
+  encoder:
+    name: stalps # stalps or sps
+    embed_dims: 128
+    patch_size: 4
+  num_heads: 4
+  mlp_ratios: 4
+  depths: 6
+  sr_ratios: 2
+
+data:
+  dataset: cifar10
+  data_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\data
+
+training:
+  epochs: 10
+  batch_size: 64
+  learning_rate: 0.001
+  train_val_split_ratio: 1
+  loss:
+    name: ce_ss # cross_entropy or ce_ss
+    omega: 0.000309 #0.000035 
+    concentration_weight: 0.280315 #0.627759
+  logger:
+    name: wandb
+    save_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\experiments
+    project: thesis_spikformer
+  save_weights: True

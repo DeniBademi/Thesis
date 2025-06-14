@@ -1,0 +1,27 @@
+model:
+  name: spikformer
+  encoder:
+    name: stalps # stalps or sps
+    embed_dims: 128
+    patch_size: 4
+  num_heads: 4
+  mlp_ratios: 4
+  depths: 6
+  sr_ratios: 2
+
+data:
+  dataset: mnist
+  data_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\data
+
+training:
+  epochs: 10
+  n_trials: 30
+  batch_size: 128
+  learning_rate: 0.001
+  loss:
+    name: ce_ss
+  logger:
+    name: wandb
+    save_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\experiments
+    project: thesis_hyperparameter_search_spikformer_mnist
+  save_weights: True

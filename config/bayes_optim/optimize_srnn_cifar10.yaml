@@ -1,0 +1,29 @@
+model:
+  name: srnn
+  n_spikes_per_timestep: 5
+  lif_beta: 0.9
+  l1_sz: 56
+  num_steps: 5
+  encoder:
+    name: convstal
+    n_spikes_per_timestep: 5
+    kernel_size: 3
+    drop_p: 0.1
+    l1_sz: 784
+
+data:
+  dataset: cifar10
+  data_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\data
+
+training:
+  epochs: 10
+  n_trials: 30
+  batch_size: 128
+  learning_rate: 0.001
+  loss:
+    name: ce_ss
+  logger:
+    name: wandb
+    save_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\experiments
+    project: thesis_hyperparameter_search_srnn_cifar10
+  save_weights: True

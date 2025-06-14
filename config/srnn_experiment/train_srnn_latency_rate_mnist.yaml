@@ -1,0 +1,26 @@
+model:
+  name: srnn
+  n_spikes_per_timestep: 5
+  lif_beta: 0.9
+  l1_sz: 56
+  num_steps: 5
+  encoder:
+    name: latency # latency or rate
+    T: 5
+
+data:
+  dataset: mnist
+  data_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\data
+
+training:
+  epochs: 10
+  batch_size: 128
+  learning_rate: 0.001
+  train_val_split_ratio: 1
+  loss:
+    name: cross_entropy
+  logger:
+    name: wandb
+    save_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\experiments
+    project: thesis_rsnn
+  save_weights: True
