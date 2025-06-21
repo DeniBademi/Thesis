@@ -11,7 +11,7 @@ Encoders:
 - Latency Coding
 - STAL
 - ConvSTAL
-- STAL-PS
+- ConvSTAL-PS
 
 Loss functions:
 - Encoder loss (proposed [here](https://arxiv.org/pdf/2407.08362))
@@ -21,7 +21,7 @@ Loss functions:
 Experiments:
 - Training of STAL with Encoder and MultiChannelEncoder losses
 - Training of RSNN with different encoders (Rate Coding, Latency Coding, STAL, ConvSTAL)
-- Training of Spikformer with different encoders (SPS, STAL-PS)
+- Training of Spikformer with different encoders (SPS, ConvSTAL-PS)
 
 ## Installation
 
