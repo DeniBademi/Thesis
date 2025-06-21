@@ -11,11 +11,6 @@ from .base_task import BaseTask
 from .MetricManager import MetricManager
 
 class EncodingTask(BaseTask):
-    """
-    A wrapper class for pytorch neural networks. This class is used to wrap
-    pytorch neural networks and provide a common interface for training and
-    evaluation.
-    """
 
     def __init__(self, model, loss_fn, learning_rate):
         super(EncodingTask, self).__init__(model, loss_fn, learning_rate)
@@ -32,13 +27,11 @@ class EncodingTask(BaseTask):
 
     def training_step(self, batch, batch_idx):
         x, y = batch
-
         preds = self.forward(x)
         
         if isinstance(self.loss_fn, EncoderLoss):
             x = x.flatten(start_dim=1)
             
-        
         loss = self.loss_fn(preds, x)
 
         self.metric_manager.track_step(loss, preds, y, preds[0], "train")
@@ -47,8 +40,8 @@ class EncodingTask(BaseTask):
     
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        
         preds = self.forward(x)
+        
         if isinstance(self.loss_fn, EncoderLoss):
             x = x.flatten(start_dim=1)
             
@@ -60,12 +53,13 @@ class EncodingTask(BaseTask):
 
     def test_step(self, batch, batch_idx):
         x, y = batch
-        
         preds = self.forward(x)
+        
         if isinstance(self.loss_fn, EncoderLoss):
             x = x.flatten(start_dim=1)
             
+        loss = self.loss_fn(preds, x)
         
-        loss = self.loss_fn(preds, y)
+        self.metric_manager.track_step(loss, preds, y, preds[0], "test")
 
         return loss

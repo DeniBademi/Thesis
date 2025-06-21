@@ -8,11 +8,11 @@ weight parameters for the CE_SpikeSparsityLoss function.
 from copy import deepcopy
 import wandb
 import os
-from typing import Dict, List, Tuple, Optional
-from tqdm import tqdm
+from typing import Dict
 import optuna
 from optuna.trial import Trial
-
+from datetime import datetime
+import torch
 import sys
 sys.path.append("./")
 
@@ -22,7 +22,10 @@ from src.training.utils.get_model import get_model
 from src.training.utils.get_logger import get_logger
 from src.training.utils.get_datamodule import get_data_module
 from src.training.utils.args import parse_args, load_config, update_nested_config
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
+
+torch.set_float32_matmul_precision('medium')
+seed_everything(42)
 
 def train_with_parameters(config: Dict, omega: float, concentration_weight: float, 
                          num_epochs: int = 5) -> Dict[str, float]:
@@ -67,14 +70,15 @@ def train_with_parameters(config: Dict, omega: float, concentration_weight: floa
         task = ClassificationTask(
             model=model,
             loss_fn=loss_fn,
-            learning_rate=config['training']['learning_rate']
+            learning_rate=config['training']['learning_rate'],
+            backend= 'spikingjelly' if config['model']['name'] == 'spikformer' else 'pytorch'
         )
         logger = get_logger(config)
         
         # Train model
         trainer = Trainer(
             max_epochs=config['training']['epochs'],
-            logger=logger
+            logger=logger,
         )
         trainer.fit(task, data_module)
         
@@ -114,7 +118,9 @@ def objective(trial: Trial, config: Dict, num_epochs: int):
         - concentration_weight: Float between 0.1 and 10 (log scale)
     """
     # Define hyperparameter search space
-    omega = trial.suggest_float('omega', 0.00001, 0.0005, log=True)
+    # omega = trial.suggest_float('omega', 0.000001, 0.0005, log=True)
+    omega = trial.suggest_float('omega', 0.00026, 0.0005, log=True)
+    
     concentration_weight = trial.suggest_float('concentration_weight', 0.1, 10, log=True)
     
     metrics = train_with_parameters(config, omega, concentration_weight, num_epochs)
@@ -125,85 +131,81 @@ def objective(trial: Trial, config: Dict, num_epochs: int):
  
     return metrics['accuracy'], metrics['spike_density']
 
-def find_optimal_parameters(config: Dict, 
-                          n_trials: int = 20,
-                          num_epochs: int = 5) -> Tuple[float, float]:
-    """Find optimal values for omega and concentration weight using Optuna.
+def save_search_results(study: optuna.Study, config: Dict):
+    
+    log_filename = os.path.join(config['training']['logger']['save_dir'], \
+        'hyperparameter_search', f'search_results_{config["model"]["name"]}_{config["data"]["dataset"]}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.txt')
+    os.makedirs(os.path.dirname(log_filename), exist_ok=True)
+    
+    with open(log_filename, 'w') as f:
+        f.write("Optuna Hyperparameter Search Results\n")
+        f.write("===================================\n\n")
+    
+        if study.directions:
+            f.write(f"Number of trials on the Pareto front: {len(study.best_trials)}\n")
+        
+            trial_with_highest_accuracy = max(study.best_trials, key=lambda t: t.values[0])
+            f.write("Trial with highest accuracy: ")
+            f.write(f"\tnumber: {trial_with_highest_accuracy.number}\n")
+            f.write(f"\tparams: {trial_with_highest_accuracy.params}\n")
+            f.write(f"\tvalues: {trial_with_highest_accuracy.values}\n")
+            
+            trial_with_lowest_spike_density = min(study.best_trials, key=lambda t: t.values[1])
+            f.write("Trial with lowest spike density: ")
+            f.write(f"\tnumber: {trial_with_lowest_spike_density.number}\n")
+            f.write(f"\tparams: {trial_with_lowest_spike_density.params}\n")
+            f.write(f"\tvalues: {trial_with_lowest_spike_density.values}\n")
+        else:
+            best_params = (study.best_params['omega'], study.best_params['concentration_weight'])
+            
+            f.write(f"Best trial: {study.best_trial.number}\n")
+            f.write(f"Best score: {study.best_value:.4f}\n")
+            f.write(f"Best parameters:\n")
+            f.write(f"  Omega: {best_params[0]:.6f}\n")
+            f.write(f"  Concentration Weight: {best_params[1]:.4f}\n\n")
+                
+            f.write("Best trial metrics:\n")
+            f.write(f"  Accuracy: {study.best_trial.user_attrs['accuracy']:.4f}\n")
+            f.write(f"  Spike Density: {study.best_trial.user_attrs['spike_density']:.4f}\n")
 
-    This function performs hyperparameter optimization using Optuna to find the
-    best values for omega and concentration weight parameters. It saves the results
-    to a file and returns the optimal parameters.
+            f.write("All trials:\n")
+            for trial in study.trials:
+                if trial.state == optuna.trial.TrialState.COMPLETE:
+                    f.write(f"\nTrial {trial.number}:\n")
+                    f.write(f"  Score: {trial.value:.4f}\n")
+                    f.write(f"  Omega: {trial.params['omega']:.6f}\n")
+                    f.write(f"  Concentration Weight: {trial.params['concentration_weight']:.4f}\n")
+                    f.write(f"  Accuracy: {trial.user_attrs['accuracy']:.4f}\n")
+                    f.write(f"  Spike Density: {trial.user_attrs['spike_density']:.4f}\n")
+            
 
-    Args:
-        config (Dict): Configuration dictionary containing model and training settings.
-        n_trials (int, optional): Number of optimization trials. Defaults to 20.
-        num_epochs (int, optional): Number of epochs to train for each trial. Defaults to 5.
-
-    Returns:
-        Tuple[float, float]: Optimal values for (omega, concentration_weight).
-
-    Note:
-        The optimization results are saved to a file in the directory specified by
-        config['training']['logger']['save_dir']/hyperparameter_search/search_results.txt.
-        The file includes:
-        - Best trial number and score
-        - Best parameters (omega and concentration weight)
-        - Best trial metrics (accuracy and spike density)
-        - Results from all completed trials
-    """
-
-    # Create Optuna study
-    study = optuna.create_study(
-        directions=['maximize', 'minimize'], 
+def find_optimal_parameters(config: Dict):
+    # study = optuna.create_study(
+    #     storage=f'sqlite:///{os.path.join(config["training"]["logger"]["save_dir"], "hyperparameter_search", f"study_{config["model"]["name"]}_{config["data"]["dataset"]}_{datetime.now().strftime("%Y%m%d_%H%M%S")}.db")}',
+    #     directions=['maximize', 'minimize'], 
+    #     study_name='ce_ss_loss_optimization',
+    #     pruner=optuna.pruners.MedianPruner()
+    # )
+    
+    study = optuna.load_study(
         study_name='ce_ss_loss_optimization',
+        storage='sqlite:///C:/Users/dzahariev/Desktop/Thesis/Thesis/experiments/hyperparameter_search/study_srnn_mnist_20250609_205015.db',
         pruner=optuna.pruners.MedianPruner()
     )
+    n_trials = config['training']['n_trials']
     
     # Run optimization
     study.optimize(
-        lambda trial: objective(trial, config, num_epochs),
+        lambda trial: objective(trial, config, config['training']['epochs']),
         n_trials=n_trials,
         show_progress_bar=True
     )
     
-    # Get best parameters
-    best_params = (study.best_params['omega'], study.best_params['concentration_weight'])
-    
-    # Save results to file
-    results_dir = os.path.join(config['training']['logger']['save_dir'], 'hyperparameter_search')
-    os.makedirs(results_dir, exist_ok=True)
-    
-    with open(os.path.join(results_dir, 'search_results.txt'), 'w') as f:
-        f.write("Optuna Hyperparameter Search Results\n")
-        f.write("===================================\n\n")
-        f.write(f"Best trial: {study.best_trial.number}\n")
-        f.write(f"Best score: {study.best_value:.4f}\n")
-        f.write(f"Best parameters:\n")
-        f.write(f"  Omega: {best_params[0]:.6f}\n")
-        f.write(f"  Concentration Weight: {best_params[1]:.4f}\n\n")
-        
-        f.write("Best trial metrics:\n")
-        f.write(f"  Accuracy: {study.best_trial.user_attrs['accuracy']:.4f}\n")
-        f.write(f"  Spike Density: {study.best_trial.user_attrs['spike_density']:.4f}\n")
-
-        f.write("All trials:\n")
-        for trial in study.trials:
-            if trial.state == optuna.trial.TrialState.COMPLETE:
-                f.write(f"\nTrial {trial.number}:\n")
-                f.write(f"  Score: {trial.value:.4f}\n")
-                f.write(f"  Omega: {trial.params['omega']:.6f}\n")
-                f.write(f"  Concentration Weight: {trial.params['concentration_weight']:.4f}\n")
-                f.write(f"  Accuracy: {trial.user_attrs['accuracy']:.4f}\n")
-                f.write(f"  Spike Density: {trial.user_attrs['spike_density']:.4f}\n")
-
-    return best_params
+    save_search_results(study, config)
 
 if __name__ == "__main__":
     args = parse_args()
     config = load_config(os.path.join(os.getcwd(), args.config))
     config = update_nested_config(deepcopy(config), vars(args))
     
-    optimal_omega, optimal_conc_weight = find_optimal_parameters(config)
-    print(f"Optimal parameters found:")
-    print(f"Omega: {optimal_omega}")
-    print(f"Concentration Weight: {optimal_conc_weight}") 
+    find_optimal_parameters(config)

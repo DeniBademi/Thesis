@@ -5,7 +5,7 @@ instance based on configuration parameters. The data module handles dataset load
 preprocessing, and batch creation for training neural networks.
 """
 
-def get_data_module(config, cv=False):
+def get_data_module(config):
     """Create and return a configured SpikingDataModule instance.
 
     This function creates a SpikingDataModule with the specified configuration
@@ -30,21 +30,11 @@ def get_data_module(config, cv=False):
     
     data_args = config['data']
     training_args = config['training']
-    if cv:
-        from src.data.datamodules.SpikingKFoldDataModule import SpikingKFoldDataModule
-        data_module = SpikingKFoldDataModule(
-            dataset=data_args['dataset'],
-            data_dir=data_args['data_dir'],
-            batch_size=training_args['batch_size'],
-            k=config['training']['k_fold']['k'],
-            num_splits=config['training']['k_fold']['num_splits'],
-        )
-    else:
-        from src.data.datamodules.SpikingDataModule import SpikingDataModule
-        data_module = SpikingDataModule(
-        dataset=data_args['dataset'],
-        data_dir=data_args['data_dir'],
-        batch_size=training_args['batch_size'],
-    )
+    
+    # merge the training and data args
+    config['training'] = {**config['training'], **config['data']}
+    
+    from src.data.datamodules.SpikingDataModule import SpikingDataModule
+    data_module = SpikingDataModule(**{**config['training'], **config['data']})
     data_module.setup()
     return data_module

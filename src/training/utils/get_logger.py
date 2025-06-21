@@ -1,3 +1,4 @@
+import os
 """Logger factory for creating and configuring experiment logging.
 
 This module provides a factory function to create and configure experiment loggers
@@ -74,7 +75,11 @@ def get_logger(config) -> WandbLogger | MLFlowLogger | None:
         logger = WandbLogger(name=run_name, project=project_name, save_dir=save_dir, offline=is_offline)
     elif logger_args['name'].lower() == 'mlflow':
         from pytorch_lightning.loggers import MLFlowLogger
-        logger = MLFlowLogger(experiment_name=project_name, save_dir=save_dir)
+        logger = MLFlowLogger(experiment_name=project_name, 
+                              save_dir=save_dir, 
+                              artifact_location=os.path.join(save_dir, "mlruns"),
+                              tracking_uri="http://localhost:5000", 
+                              log_model=True)
     else:
         raise ValueError(f"Logger {logger_args['name']} not found")
     

@@ -1,12 +1,7 @@
-import os
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-
 from pytorch_lightning import LightningModule
-from torch.optim import Adam
 
-from src.training.tasks.MetricManager import MetricManager
 class BaseTask(LightningModule):
     """
     A wrapper class for pytorch neural networks. This class is used to wrap

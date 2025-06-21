@@ -1,14 +1,10 @@
-# Neural Network Training Framework
+# Spike Threshold Adaptive Learning for Image Classification with SNNs
 
-This project contains the proceedings of my Bachelor Thesis at Radboud University "Spike Threshold Adaptive Learning for
-Image Classification with SNNs". It contains the official implementation of ConvSTAL and STAL-PS, two encoder networks that convert images to binary spike trains (inspired by [STAL](https://arxiv.org/pdf/2407.08362)). It includes
-
-Implementations of:
+This project contains the proceedings of my Bachelor Thesis at Radboud University. It contains the official implementation of ConvSTAL and ConvSTAL-PS, two encoder networks that convert images to binary spike trains (inspired by [STAL](https://arxiv.org/pdf/2407.08362)).
 
 Classifiers: 
 -  __Spiking Recurrent Neural Network__ (proposed [here](https://arxiv.org/pdf/2407.08362))
 - __Spiking Vision Transformer__ (proposed [here](https://arxiv.org/abs/2209.15425))
-
 
 Encoders:
 - Rate Coding
@@ -19,9 +15,8 @@ Encoders:
 
 Loss functions:
 - Encoder loss (proposed [here](https://arxiv.org/pdf/2407.08362))
-- MultiChannelEncoderLoss
 - SpikeSparsityLoss (SS)
-- Cross Entropy+SS
+- Cross-Entropy + Spike Sparsity (CE+SS) loss
 
 Experiments:
 - Training of STAL with Encoder and MultiChannelEncoder losses
@@ -63,7 +58,7 @@ pip install -r requirements.txt
 │   ├── training/          # Training utilities
 │   └── data/              # Data loading and processing
 ├── weights/               # Saved model weights
-├── experiments/           # Experiment results
+├── experiments/           # Log files of wandb and MLflow
 └── notebooks/            # Jupyter notebooks
 ```
 
@@ -78,12 +73,8 @@ python src/train.py --config config/<config_name>.yaml
 ```
 
 Available model configurations:
-- `train_spikformer.yaml`: Spikformer model
-- `train_rsnn_convstal.yaml`: SRNN with ConvSTAL encoder
-- `train_rsnn_stal.yaml`: SRNN with STAL encoder
-- `train_conv_stal.yaml`: ConvSTAL model
-- `train_stal.yaml`: STAL model
-- `train_rsnn_latency_rate.yaml`: SRNN with rate/latency encoding
+- `config/spikformer_experiment/`: Configuration files related to the experiment comparing ConvSTAL-PS against SPS
+- `config/srnn_experiment/`:Configuration files related to the experiment comparing ConvSTAL against Rate coding and STAL
 
 ### Hyperparameter Optimization
 
@@ -111,13 +102,13 @@ python src/train.py --config config/train_spikformer.yaml \
 Configuration files are in YAML format and contain settings for:
 - Model architecture and parameters
 - Training hyperparameters
-- Data loading and preprocessing
+- Data loading
 - Logging configuration
 
 ## Logging
 
 The framework supports two logging backends:
-1. Weights & Biases (wandb)
+1. Weights & Biases (wandb) (main)
 2. MLFlow
 
 Configure logging in the config file:
@@ -127,4 +118,9 @@ training:
     name: wandb  # or mlflow
     save_dir: ./logs
     project: your_project_name
+```
+
+To use MLflow, you need to first initialize it with the following commant
+```bash 
+mlflow server --backend-store-uri sqlite:///<ROOT_DIR>\experiments\mlflow\mlflow.db --default-artifact-root ./mlflow/artifacts --host 127.0.0.1 
 ```

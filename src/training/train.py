@@ -4,7 +4,6 @@ sys.path.append(os.getcwd())
 import torch
 from pytorch_lightning import Trainer
 
-# import seed_everything
 from pytorch_lightning import seed_everything
 from pytorch_lightning.callbacks import LearningRateMonitor
 from copy import deepcopy
@@ -21,7 +20,6 @@ from src.training.utils import (
     
 torch.set_float32_matmul_precision('medium')
 seed_everything(42)
-
 
 def wrap_model(model, loss, config):
     backend = 'torch' if config['model']['name'] == "srnn" else 'spikingjelly'
@@ -51,14 +49,14 @@ if __name__ == "__main__":
         callbacks=[lr_monitor]
     )
     trainer.fit(model, data_module)
-    trainer.test(model, data_module)
     
+    print("="*50+"Training complete"+"="*50)
     if logger is not None:
         logger.finalize('success')
     
     if config['training']['save_weights']:
         from datetime import datetime
-        save_dir = "C:/Users/dzahariev/Desktop/Thesis/Thesis/weights"
+        save_dir = "./weights"
         if 'encoder' in config['model']:
             filename = f"{config['model']['name']}_{config['model']['encoder']['name']}_{config['data']['dataset']}"
             if 'freeze_weights' in config['model']['encoder']:
@@ -67,7 +65,9 @@ if __name__ == "__main__":
         else:
             filename = f"{config['model']['name']}_{config['data']['dataset']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             
-
         trainer.save_checkpoint(os.path.join(save_dir, f'{filename}.cpkt'))
         print(f"Saved checkpoint to {os.path.join(save_dir, f'{filename}.cpkt')}")
-        
+    
+    print("="*50+"Doing inference on test set"+"="*50)
+    test_results = trainer.test(model, data_module)
+    print(test_results)
