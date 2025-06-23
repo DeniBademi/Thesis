@@ -1,3 +1,5 @@
+# Retrieved from https://github.com/ZK-Zhou/spikformer
+
 import torch
 import torch.nn as nn
 from spikingjelly.clock_driven.neuron import MultiStepLIFNode
@@ -84,9 +86,3 @@ class SPS(nn.Module):
         # print(f"SPS output shape: {x.shape}") # (T, B, N, C)
         # print(f"Num of patches: {self.num_patches}")
         return x
-    
-    # Inference time
-    # Further analysis
-    # Power consumption
-    # table - acc, sparsity, inference time
-    # What will happen when you put it on a chip

@@ -27,7 +27,7 @@ training:
   loss:
     name: ce_ss # cross_entropy or ce_ss
     omega: 0.000035 # for ce_ss
-    concentration_weight: 0.627759 # for ce_ss
+    c: 0.627759 # for ce_ss
   logger:
     name: wandb
     save_dir: C:\Users\dzahariev\Desktop\Thesis\Thesis\experiments

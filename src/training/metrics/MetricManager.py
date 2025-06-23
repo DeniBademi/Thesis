@@ -2,10 +2,6 @@ from collections import defaultdict
 from pytorch_lightning import LightningModule
 from torchmetrics import Accuracy, F1Score, Precision, Recall
 from src.training.metrics.sparsity_metrics import SpikeSparsity
-import torch
-
-
-
 
 class MetricManager(LightningModule):
     

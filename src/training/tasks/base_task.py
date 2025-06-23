@@ -4,8 +4,7 @@ from pytorch_lightning import LightningModule
 
 class BaseTask(LightningModule):
     """
-    A wrapper class for pytorch neural networks. This class is used to wrap
-    pytorch neural networks and provide a common interface for training and
+    This class is used to wrap pytorch neural networks and provide a common interface for training and
     evaluation.
     """
 

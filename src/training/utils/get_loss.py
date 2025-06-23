@@ -20,7 +20,7 @@ def get_loss(config):
                     - 'name': Loss function type ('cross_entropy', 'ce_ss', 'encoder_loss', or 'multi_channel_encoder_loss')
                     - For 'ce_ss' loss:
                         - 'omega': Weight parameter for spike sparsity
-                        - 'concentration_weight': Weight for concentration loss
+                        - 'c': Weight for concentration loss
                 - 'epochs': Number of training epochs (required for 'ce_ss' loss)
 
     Returns:
@@ -43,8 +43,8 @@ def get_loss(config):
         from src.training.loss.ce_ss_loss import CE_SpikeSparsityLoss
         omega = loss_args['omega']
         n_epochs = config['training']['epochs']
-        concentration_weight = loss_args['concentration_weight']
-        return CE_SpikeSparsityLoss(omega, n_epochs, concentration_weight)
+        c = loss_args['c']
+        return CE_SpikeSparsityLoss(omega, n_epochs, c)
     elif loss_args['name'] == 'encoder_loss':
         from src.training.loss.EncoderLoss import EncoderLoss
         return EncoderLoss()

@@ -1,3 +1,5 @@
+# Partially based on https://github.com/ZK-Zhou/spikformer
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

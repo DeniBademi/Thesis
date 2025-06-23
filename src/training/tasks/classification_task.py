@@ -1,9 +1,9 @@
 
 from spikingjelly.clock_driven import functional as SF
 
-from .base_task import BaseTask
-from ..loss.CE_L1Loss import CE_L1Loss
-from .MetricManager import MetricManager
+from src.training.tasks.base_task import BaseTask
+from src.training.loss.CE_L1Loss import CE_L1Loss
+from src.training.metrics.MetricManager import MetricManager
 
 class ClassificationTask(BaseTask):
 

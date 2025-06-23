@@ -1,7 +1,7 @@
 import os
 import sys
+import torch
 sys.path.append(os.getcwd())
-from sklearn.model_selection import KFold
 import numpy as np
 from datetime import datetime
 from copy import deepcopy
@@ -11,6 +11,7 @@ from src.training.utils.args import parse_args, load_config, update_nested_confi
 from src.training.utils import get_model, get_loss, get_logger
 from pytorch_lightning import Trainer, seed_everything, LightningDataModule, LightningModule
 from pytorch_lightning.callbacks import LearningRateMonitor
+torch.set_float32_matmul_precision('medium')
 seed_everything(42)
 
 def wrap_model(model, loss, config):
@@ -45,7 +46,7 @@ def train_fold(model:LightningModule, data_module:LightningDataModule, config, f
     
     # Save fold-specific checkpoint
     if config['training']['save_weights']:
-        save_dir = "C:/Users/dzahariev/Desktop/Thesis/Thesis/weights"
+        save_dir = "./weights"
         if 'encoder' in config['model']:
             filename = f"{config['model']['name']}_{config['model']['encoder']['name']}_{config['data']['dataset']}_fold_{fold_idx}"
             if 'freeze_weights' in config['model']['encoder']:

@@ -1,3 +1,6 @@
+# Retrieved from https://github.com/ZK-Zhou/spikformer
+
+
 import torch
 import torch.nn as nn
 from .mlp import MLP

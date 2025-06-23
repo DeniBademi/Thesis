@@ -7,8 +7,8 @@ import pytorch_lightning as pl
 from torch.optim import Adam
 
 from src.training.loss.EncoderLoss import EncoderLoss
-from .base_task import BaseTask
-from .MetricManager import MetricManager
+from src.training.tasks.base_task import BaseTask
+from src.training.metrics.MetricManager import MetricManager
 
 class EncodingTask(BaseTask):
 

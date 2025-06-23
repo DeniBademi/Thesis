@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from timm.models.layers import to_2tuple
 
-class STAL_PS(nn.Module):
+class ConvSTAL_PS(nn.Module):
     def __init__(self, img_height=128, img_width=128, patch_size=4, in_channels=2, embed_dims=256, alpha:float=25, T:int=5):
         super().__init__()
         self.image_size = [img_height, img_width]

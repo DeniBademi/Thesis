@@ -58,11 +58,11 @@ def get_encoder(config: dict) -> nn.Module:
     in_channels = 1 if config['data']['dataset'] == 'mnist' else 3
 
     if encoder_type == "stalps":
-        from src.models.encoders import STAL_PS
+        from src.models.encoders import ConvSTAL_PS
         EMBED_DIMS = config['model']['encoder']['embed_dims']
         patch_size = config['model']['encoder']['patch_size']
         
-        encoder = STAL_PS(
+        encoder = ConvSTAL_PS(
             img_height=img_dims[0],
             img_width=img_dims[1],
             patch_size=patch_size,

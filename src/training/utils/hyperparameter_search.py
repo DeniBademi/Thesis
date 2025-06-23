@@ -27,7 +27,7 @@ from pytorch_lightning import Trainer, seed_everything
 torch.set_float32_matmul_precision('medium')
 seed_everything(42)
 
-def train_with_parameters(config: Dict, omega: float, concentration_weight: float, 
+def train_with_parameters(config: Dict, omega: float, c: float, 
                          num_epochs: int = 5) -> Dict[str, float]:
     """Train a model with specific hyperparameters and return performance metrics.
 
@@ -37,7 +37,7 @@ def train_with_parameters(config: Dict, omega: float, concentration_weight: floa
     Args:
         config (Dict): Configuration dictionary containing model and training settings.
         omega (float): Weight parameter for spike sparsity in CE_SpikeSparsityLoss.
-        concentration_weight (float): Weight parameter for concentration loss.
+        c (float): Weight parameter for concentration loss.
         num_epochs (int, optional): Number of training epochs. Defaults to 5.
 
     Returns:
@@ -51,7 +51,7 @@ def train_with_parameters(config: Dict, omega: float, concentration_weight: floa
     """
     # Update config with current parameters
     config['training']['loss']['omega'] = omega
-    config['training']['loss']['concentration_weight'] = concentration_weight
+    config['training']['loss']['c'] = c
     config['training']['epochs'] = num_epochs
     
     try:
@@ -63,7 +63,7 @@ def train_with_parameters(config: Dict, omega: float, concentration_weight: floa
         loss_fn = CE_SpikeSparsityLoss(
             omega=omega,
             n_epochs=num_epochs,
-            concentration_weight=concentration_weight
+            c=c
         )
         
         # Initialize task
@@ -115,15 +115,15 @@ def objective(trial: Trial, config: Dict, num_epochs: int):
     Note:
         The hyperparameter search space is defined as:
         - omega: Float between 0.00001 and 0.0005 (log scale)
-        - concentration_weight: Float between 0.1 and 10 (log scale)
+        - c: Float between 0.1 and 10 (log scale)
     """
     # Define hyperparameter search space
     # omega = trial.suggest_float('omega', 0.000001, 0.0005, log=True)
     omega = trial.suggest_float('omega', 0.00026, 0.0005, log=True)
     
-    concentration_weight = trial.suggest_float('concentration_weight', 0.1, 10, log=True)
+    c = trial.suggest_float('c', 0.1, 10, log=True)
     
-    metrics = train_with_parameters(config, omega, concentration_weight, num_epochs)
+    metrics = train_with_parameters(config, omega, c, num_epochs)
         
     # Log metrics to Optuna
     trial.set_user_attr('accuracy', metrics['accuracy'])
@@ -156,7 +156,7 @@ def save_search_results(study: optuna.Study, config: Dict):
             f.write(f"\tparams: {trial_with_lowest_spike_density.params}\n")
             f.write(f"\tvalues: {trial_with_lowest_spike_density.values}\n")
         else:
-            best_params = (study.best_params['omega'], study.best_params['concentration_weight'])
+            best_params = (study.best_params['omega'], study.best_params['c'])
             
             f.write(f"Best trial: {study.best_trial.number}\n")
             f.write(f"Best score: {study.best_value:.4f}\n")
@@ -174,7 +174,7 @@ def save_search_results(study: optuna.Study, config: Dict):
                     f.write(f"\nTrial {trial.number}:\n")
                     f.write(f"  Score: {trial.value:.4f}\n")
                     f.write(f"  Omega: {trial.params['omega']:.6f}\n")
-                    f.write(f"  Concentration Weight: {trial.params['concentration_weight']:.4f}\n")
+                    f.write(f"  Concentration Weight: {trial.params['c']:.4f}\n")
                     f.write(f"  Accuracy: {trial.user_attrs['accuracy']:.4f}\n")
                     f.write(f"  Spike Density: {trial.user_attrs['spike_density']:.4f}\n")
             

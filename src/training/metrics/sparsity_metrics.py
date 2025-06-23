@@ -38,16 +38,6 @@ class SpikeSparsity:
     
     @staticmethod
     def activation_sparsity(embeddings: torch.Tensor):
-        """
-        Calculate sparsity based on L1/L2 norm ratio, which measures 
-        how concentrated the activations are.
-        
-        Args:
-            embeddings: Tensor with shape [T, B, N, C]
-            
-        Returns:
-            float: Sparsity measure (0.0-1.0) where higher means more sparse
-        """
 
         # Flatten all dimensions for norm calculation
         flat_embeddings = embeddings.reshape(-1)
@@ -69,16 +59,7 @@ class SpikeSparsity:
     
     @staticmethod
     def temporal_sparsity(embeddings: torch.Tensor, threshold=0.5):
-        """
-        Calculate sparsity across the time dimension.
-        
-        Args:
-            embeddings: Tensor with shape [T, B, N, C]
-            threshold: Threshold value for considering an activation as "on"
-            
-        Returns:
-            float: Average number of time steps each neuron is active across
-        """
+
  
         # Create binary activation tensor
         binary_acts = (embeddings > threshold).float()

@@ -1,3 +1,4 @@
+# Retrieved from https://github.com/freek1/emopain-stl
 import torch
 import snntorch as snn
 
